@@ -17,8 +17,25 @@ from table_crc import *
 # ToDo: Send packet 3,4 via pyusb raw packet transfer
 
 def main():
+	probe_for_device()
 	generate_update_packets()
 
+
+	return;
+
+def probe_for_device():
+	# find our drone
+	sys.stdout.write('Info: Looking for USB connected and compatible aircraft...\n')
+	dev = usb.core.find(idVendor=0x2ca3, idProduct=0x001f)  # mavic pro
+
+	# connected?
+	if dev is None:
+		sys.stdout.write('Error: Unable to find compatible aircraft. Plug it in, power it up, and try again.\n\n')
+		sys.exit(2)
+
+	if dev.idVendor == 11427 and dev.idProduct == 31:
+		sys.stdout.write('Info: DJI Mavic Pro found.\n')
+	
 	return;
 
 def generate_update_packets():
@@ -63,10 +80,11 @@ def generate_update_packets():
 	crc = struct.pack('<H',crc)
 	packet_4 += crc
 
-	print ' '.join(format(x, '02X') for x in packet_1)
-	print ' '.join(format(x, '02X') for x in packet_2)
-	print ' '.join(format(x, '02X') for x in packet_3)
-	print ' '.join(format(x, '02X') for x in packet_4)
+	#print ' '.join(format(x, '02X') for x in packet_1)
+	#print ' '.join(format(x, '02X') for x in packet_2)
+	#print ' '.join(format(x, '02X') for x in packet_3)
+	#print ' '.join(format(x, '02X') for x in packet_4)
+
 	return;
 
 
