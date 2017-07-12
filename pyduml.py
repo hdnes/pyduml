@@ -20,6 +20,8 @@ def main():
 	probe_for_device()
 	generate_update_packets()
 
+	upload_binary()
+
 
 	return;
 
@@ -37,6 +39,27 @@ def probe_for_device():
 		sys.stdout.write('Info: DJI Mavic Pro found.\n')
 	
 	return;
+
+def upload_binary():
+	print('Info: Connecting to FTP...\n')
+	try:
+		ftp = FTP('192.168.42.2', 'herring', 'fisher', 'none', 3)
+		ftp.retrlines('LIST')
+		dir = 'upgrade'
+		#file = open('dji_system.bin', 'rb')
+		if dir in ftp.nlst():
+			print('Info: Upgrade folder exists. Uploading firmware...\n')
+		#	ftp.storbinary('STOR upgrade/dji_system.bin', file)
+		#	file.close()
+			ftp.quit()
+		else:
+			print('Error: No "upgrade" folder on this ftp. Something is wrong. Exiting!\n')
+			ftp.quit()
+	except:
+		print("Error: Failed FTP Connection to aircraft. Exiting...\n")
+		sys.exit(2)
+
+	return;	
 
 def generate_update_packets():
 	# Enter upgrade mode (delete old file if exists)
