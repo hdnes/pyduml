@@ -3,14 +3,17 @@
 # Thanks the_lord for the sniffing
 # Thanks jaydee for the usb and ftp work
 
+import time
 import os
 import sys
+import serial
 import usb.core
 import usb.util
 import struct
 import hashlib
 from ftplib import FTP
 from table_crc import *
+
 
 # ToDo: Send packets 1,2 above via pyusb raw packet transfer
 # ToDo: put ftp file transfer here! /ftp/upgrade/xxx_system.bin
@@ -21,12 +24,16 @@ def main():
 	configure_usb()
 	generate_update_packets()
 	write_packet(packet_1) # Enter upgrade mode (delete old file if exists)
+	time.sleep(0.1)
 	write_packet(packet_2) # Enable Reporting
+	time.sleep(0.1)
 	upload_binary()
 	write_packet(packet_3) # Send File size
+	time.sleep(0.1)
 	write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
 
 	print "Firmware Upload Complete"
+	ser.close
 
 	return;
 
@@ -46,22 +53,20 @@ def probe_for_device():
 		return;
 
 def configure_usb():
-	cfg = dev.get_active_configuration()
-	intf = cfg[(5,0)]
-	usb.util.claim_interface(dev, intf)
-	ep = intf[1]
-	print("Endpoint Address: " + str(ep.bEndpointAddress))
-	print("Turning on CDC Abstract Control Module")
-	# dev.ctrl_transfer(reqType, bReq, wVal, wIndex, [])
-	ret = dev.ctrl_transfer(0xa1,0x21,0x0000,0x0004,[])
+	#serial.tools.list_ports
+	global ser
+	ser = serial.Serial('/dev/cu.usbmodem1425')
+	ser.baudrate = 115200  
+	#data_bits = 8  
+	#stop_bits = 1  
+	#parity = SerialPort::NONE
 
 	return;
 
 def write_packet(data):	
 	
-	#Convert sting if required
-	#data = [ int(''.join([data[i], data[i+1]]), base=16) for i in range(0, len(data), 2)]
-	print('%d/%d written' %(ep.write(data), len(data)))
+	ser.write(data)     # write a string
+	print ' '.join(format(x, '02X') for x in data)
 
 	return;
 
@@ -71,11 +76,11 @@ def upload_binary():
 		ftp = FTP('192.168.42.2', 'herring', 'fisher', 'none', 3)
 		ftp.retrlines('LIST')
 		dir = 'upgrade'
-		#file = open('dji_system.bin', 'rb')
+		file = open('dji_system.bin', 'rb')
 		if dir in ftp.nlst():
 			print('Info: Upgrade folder exists. Uploading firmware...\n')
-		#	ftp.storbinary('STOR upgrade/dji_system.bin', file)
-		#	file.close()
+			ftp.storbinary('STOR upgrade/dji_system.bin', file)
+			file.close()
 			ftp.quit()
 		else:
 			print('Error: No "upgrade" folder on this ftp. Something is wrong. Exiting!\n')
@@ -88,6 +93,11 @@ def upload_binary():
 
 def generate_update_packets():
 	# Enter upgrade mode (delete old file if exists)
+	global packet_1 
+	global packet_2 
+	global packet_3 
+	global packet_4
+
 	packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 28 65 57 40 00 07 00 00 00 00 00 00 00 00 00 27 D3')
 	# Enable Reporting
 	packet_2 = bytearray.fromhex(u'55 0E 04 66 2A 28 68 57 40 00 0C 00 88 20')
