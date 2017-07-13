@@ -18,10 +18,15 @@ from table_crc import *
 
 def main():
 	probe_for_device()
+	configure_usb()
 	generate_update_packets()
-
+	write_packet(packet_1) # Enter upgrade mode (delete old file if exists)
+	write_packet(packet_2) # Enable Reporting
 	upload_binary()
+	write_packet(packet_3) # Send File size
+	write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
 
+	print "Firmware Upload Complete"
 
 	return;
 
@@ -37,7 +42,27 @@ def probe_for_device():
 
 	if dev.idVendor == 11427 and dev.idProduct == 31:
 		sys.stdout.write('Info: DJI Mavic Pro found.\n')
+
+		return;
+
+def configure_usb()	
+	cfg = dev.get_active_configuration()
+	intf = cfg[(5,0)]
+	usb.util.claim_interface(dev, intf)
+	ep = intf[1]
+	print("Endpoint Address: " + str(ep.bEndpointAddress))
+	print("Turning on CDC Abstract Control Module")
+	# dev.ctrl_transfer(reqType, bReq, wVal, wIndex, [])
+	ret = dev.ctrl_transfer(0xa1,0x21,0x0000,0x0004,[])
+
+	return;
+
+def write_packet(data)	
 	
+	#Convert sting if required
+	#data = [ int(''.join([data[i], data[i+1]]), base=16) for i in range(0, len(data), 2)]
+	print('%d/%d written' %(ep.write(data), len(data)))
+
 	return;
 
 def upload_binary():
