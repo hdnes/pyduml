@@ -45,7 +45,7 @@ def probe_for_device():
 
 		return;
 
-def configure_usb()	
+def configure_usb():
 	cfg = dev.get_active_configuration()
 	intf = cfg[(5,0)]
 	usb.util.claim_interface(dev, intf)
@@ -57,7 +57,7 @@ def configure_usb()
 
 	return;
 
-def write_packet(data)	
+def write_packet(data):	
 	
 	#Convert sting if required
 	#data = [ int(''.join([data[i], data[i+1]]), base=16) for i in range(0, len(data), 2)]
