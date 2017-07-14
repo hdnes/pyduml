@@ -29,7 +29,7 @@ def main():
 	write_packet(packet_3) # Send File size
 	write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
 
-	print "Firmware Upload Complete"
+	print ("Firmware Upload Complete")
 	ser.close
 
 	return;
@@ -62,11 +62,12 @@ def configure_usb():
 
 def write_packet(data):	
 	
-	ser.write(data)     # write a string
-	time.sleep(0.1)
-	print ' '.join(format(x, '02X') for x in data)
+    ser.write(data)     # write a string
+    time.sleep(0.1)
+    hexout = ' '.join(format(x, '02X') for x in data)
+    print (hexout)
 
-	return;
+    return;
 
 def upload_binary():
 	print('Info: Connecting to FTP...\n')
