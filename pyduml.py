@@ -23,13 +23,10 @@ def main():
 	probe_for_device()
 	configure_usb()
 	generate_update_packets()
-	write_packet(packet_1) # Enter upgrade mode (delete old file if exists)
-	time.sleep(0.1)
+	write_packet(packet_1) # Enter upgrade mode (delete old file if exists)	
 	write_packet(packet_2) # Enable Reporting
-	time.sleep(0.1)
 	upload_binary()
 	write_packet(packet_3) # Send File size
-	time.sleep(0.1)
 	write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
 
 	print "Firmware Upload Complete"
@@ -66,6 +63,7 @@ def configure_usb():
 def write_packet(data):	
 	
 	ser.write(data)     # write a string
+	time.sleep(0.1)
 	print ' '.join(format(x, '02X') for x in data)
 
 	return;
@@ -76,10 +74,10 @@ def upload_binary():
 		ftp = FTP('192.168.42.2', 'herring', 'fisher', 'none', 3)
 		ftp.retrlines('LIST')
 		dir = 'upgrade'
-		file = open('dji_system.bin', 'rb')
+		
 		if dir in ftp.nlst():
 			print('Info: Upgrade folder exists. Uploading firmware...\n')
-			ftp.storbinary('STOR upgrade/dji_system.bin', file)
+			ftp.storbinary('STOR /upgrade/dji_system.bin', open('dji_system.bin', 'rb'))
 			file.close()
 			ftp.quit()
 		else:
