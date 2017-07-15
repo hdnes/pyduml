@@ -72,6 +72,7 @@ def upload_binary():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
+        ftp.mkdir("/upgrade/.bin")
         fh.close()
     return	
 
