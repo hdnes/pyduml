@@ -84,7 +84,11 @@ def upload_binary():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
-        ftp.mkd("/upgrade/.bin")
+        ftp.cwd('upgrade')
+        if '.bin' in ftp.nlst() :
+            print '.bin already exists...'
+        else :
+            ftp.mkd("/upgrade/.bin")
         fh.close()
         ftp.quit()
     return    
