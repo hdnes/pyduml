@@ -18,11 +18,23 @@ from table_crc import *
 # ToDo: put ftp file transfer here! /ftp/upgrade/xxx_system.bin
 # ToDo: Send packet 3,4 via pyusb raw packet transfer
 
+isMavic = True
+
 def main():
+    
+    global isMavic
+    if len(sys.argv) > 2 and sys.argv[2] == "RC":
+            isMavic = False
+    
+    if isMavic:
+        print ("Must be doing the Mavic")
+    else:
+        print ("Must be doing the RC")
+    # return
     #probe_for_device()
     configure_usb()
     generate_update_packets()
-    write_packet(packet_1) # Enter upgrade mode (delete old file if exists)	
+    write_packet(packet_1) # Enter upgrade mode (delete old file if exists)    
     write_packet(packet_2) # Enable Reporting
     upload_binary()
     write_packet(packet_3) # Send File size
@@ -56,7 +68,7 @@ def configure_usb():
     #parity = SerialPort::NONE
     return
 
-def write_packet(data):		
+def write_packet(data):        
     ser.write(data)     # write a string
     time.sleep(0.1)
     hexout = ' '.join(format(x, '02X') for x in data)
@@ -72,9 +84,14 @@ def upload_binary():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
-        ftp.mkdir("/upgrade/.bin")
+        ftp.cwd('upgrade')
+        if '.bin' in ftp.nlst() :
+            print '.bin already exists...'
+        else :
+            ftp.mkd("/upgrade/.bin")
         fh.close()
-    return	
+        ftp.quit()
+    return    
 
 def generate_update_packets():
     # Enter upgrade mode (delete old file if exists)
@@ -82,11 +99,20 @@ def generate_update_packets():
     global packet_2 
     global packet_3 
     global packet_4
+    global isMavic
 
-    packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 28 65 57 40 00 07 00 00 00 00 00 00 00 00 00 27 D3')
+    # Mavic Pro
+    if isMavic:
+        packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 28 65 57 40 00 07 00 00 00 00 00 00 00 00 00 27 D3')
+    else:  # Must be RC
+        packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 2D E7 27 40 00 07 00 00 00 00 00 00 00 00 00 9F 44')
+
     # Enable Reporting
-    packet_2 = bytearray.fromhex(u'55 0E 04 66 2A 28 68 57 40 00 0C 00 88 20')
-
+    # Mavic Pro
+    if isMavic:
+        packet_2 = bytearray.fromhex(u'55 0E 04 66 2A 28 68 57 40 00 0C 00 88 20')
+    else:  # Must be RC
+        packet_2 = bytearray.fromhex(u'55 0E 04 66 2A 2D EA 27 40 00 0C 00 2C C8')
 
     # 551A04B12A286B5740000800YYYYYYYY0000000000000204XXXX
     #YYYYYYYY - file size in little endian
@@ -96,7 +122,12 @@ def generate_update_packets():
     # Pack file size into 4 byte Long little endian
     file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
 
-    packet_3 = bytearray.fromhex(u'55 1A 04 B1 2A 28 6B 57 40 00 08 00')
+    # Mavic Pro
+    if isMavic:
+        packet_3 = bytearray.fromhex(u'55 1A 04 B1 2A 28 6B 57 40 00 08 00')
+    else:  # Must be RC
+        packet_3 = bytearray.fromhex(u'55 1A 04 B1 2A 2D EC 27 40 00 08 00')
+    
     packet_3 += file_size #append file size
     packet_3 += bytearray.fromhex(u'00 00 00 00 00 00 02 04')
 
@@ -114,8 +145,13 @@ def generate_update_packets():
     md5_check = bytearray(hex_data)
 
 
-    # File Verification and Start Upgrade
-    packet_4 = bytearray.fromhex(u'55 1E 04 8A 2A 28 F6 57 40 00 0A 00')
+    # File Verification and Start Upgrade\
+    # Mavic Pro
+    if isMavic:
+        packet_4 = bytearray.fromhex(u'55 1E 04 8A 2A 28 F6 57 40 00 0A 00')
+    else:  # Must be RC
+        packet_4 = bytearray.fromhex(u'55 1E 04 8A 2A 2D 02 28 40 00 0A 00')
+    
     packet_4 += md5_check
 
     packet_length = len(packet_4)
