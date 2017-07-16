@@ -35,8 +35,8 @@ def main():
     upload_binary()
     write_packet(packet_3) # Send File size
     write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
-
-    print ("Firmware Upload Complete")
+    print ("---------------------------------------------------------------")
+    print ("Upgrade/Downgrade in Progress - May take a while....")
     ser.close
     return
 
@@ -83,6 +83,7 @@ def upload_binary():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
+        print ("dji_system.bin delivered via FTP")
         ftp.cwd('upgrade')
         if '.bin' in ftp.nlst() :
             print '.bin already exists...'
@@ -90,6 +91,8 @@ def upload_binary():
             ftp.mkd("/upgrade/.bin")
         fh.close()
         ftp.quit()
+
+        
     return 
 
 def generate_update_packets():
