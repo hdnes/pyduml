@@ -21,7 +21,7 @@ device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggl
 print ("--------------------------------------------------------------------------")
 if device==1:
     print ("Running Exploit for Aircraft")
-else:
+elif device ==2:
     print ("Running Exploit for RC")
     print ("----------------------")
     print ("Rooting RC is finicky, if having difficulties try the following")
@@ -32,7 +32,11 @@ else:
     print ("3: turn on (without usb connected)")
     print ("4: turn off")
     print ("5: plug in usb and turn on")
-    print ("--------------------------------------------------------------------------")
+
+elif device == 3:
+    print ("Running Exploit for Goggles")
+
+print ("--------------------------------------------------------------------------")    
 
 def main():
    
