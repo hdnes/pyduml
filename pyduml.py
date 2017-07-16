@@ -23,7 +23,16 @@ if device==1:
     print ("Running Exploit for Aircraft")
 else:
     print ("Running Exploit for RC")
-print ("---------------------------------------------------------------")
+    print ("----------------------")
+    print ("Rooting RC is finicky, if having difficulties try the following")
+    print ("---------------------------------------------------------------")
+    print ("after root completes:")
+    print ("1: unplug before turning off")
+    print ("2: turn off")
+    print ("3: turn on (without usb connected)")
+    print ("4: turn off")
+    print ("5: plug in usb and turn on")
+    print ("---------------------------------------------------------------")
 
 def main():
    
