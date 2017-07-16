@@ -16,23 +16,23 @@ import hashlib
 from table_crc import *
 
 global device
-print ("---------------------------------------------------------------")
-device = input('Select device number as follows: Aircraft = [1], RC = [2] : ')
-print ("---------------------------------------------------------------")
+print ("--------------------------------------------------------------------------")
+device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
+print ("--------------------------------------------------------------------------")
 if device==1:
     print ("Running Exploit for Aircraft")
 else:
     print ("Running Exploit for RC")
     print ("----------------------")
     print ("Rooting RC is finicky, if having difficulties try the following")
-    print ("---------------------------------------------------------------")
+    print ("--------------------------------------------------------------------------")
     print ("after root completes:")
     print ("1: unplug before turning off")
     print ("2: turn off")
     print ("3: turn on (without usb connected)")
     print ("4: turn off")
     print ("5: plug in usb and turn on")
-    print ("---------------------------------------------------------------")
+    print ("--------------------------------------------------------------------------")
 
 def main():
    
@@ -44,7 +44,7 @@ def main():
     upload_binary()
     write_packet(packet_3) # Send File size
     write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
-    print ("---------------------------------------------------------------")
+    print ("--------------------------------------------------------------------------")
     print ("Upgrade/Downgrade in Progress - May take a while....")
     ser.close
     return
@@ -115,7 +115,7 @@ def generate_update_packets():
     # Pack file size into 4 byte Long little endian
     file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
 
-    if device == 1: #Mavic Pro
+    if device == 1: #Aircraft
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 28 65 57 40 00 07 00 00 00 00 00 00 00 00 00 27 D3')
         # Enable Reporting
@@ -150,7 +150,7 @@ def generate_update_packets():
         crc = struct.pack('<H',crc)
         packet_4 += crc
     
-    elif device == 2: #Mavic RC
+    elif device == 2: #RC
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 2D E7 27 40 00 07 00 00 00 00 00 00 00 00 00 9F 44')
         # Enable Reporting
@@ -180,6 +180,37 @@ def generate_update_packets():
         crc = calc_checksum(packet_4,packet_length)
         crc = struct.pack('<H',crc)
         packet_4 += crc
+
+    elif device == 3: #Goggles
+        # Enter upgrade mode (delete old file if exists)
+        packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 3C F7 35 40 00 07 00 00 00 00 00 00 00 00 00 0C 29')
+        # Enable Reporting
+        packet_2 = bytearray.fromhex(u'55 0E 04 66 2A 3C FA 35 40 00 0C 00 48 02')
+
+        packet_3 = bytearray.fromhex(u'55 1A 04 B1 2A 3C FD 35 40 00 08 00')
+        packet_3 += file_size #append file size
+        packet_3 += bytearray.fromhex(u'00 00 00 00 00 00 02 04')
+
+        packet_length = len(packet_3)
+        crc = calc_checksum(packet_3,packet_length)
+        crc = struct.pack('<H',crc)
+        packet_3 += crc
+
+        # Calculate File md5 hash
+        filehash = hashlib.md5()
+        filehash.update(open(dir_path).read())
+        filehash = filehash.hexdigest()
+        hex_data = filehash.decode("hex")
+        md5_check = bytearray(hex_data)
+
+        # File Verification and Start Upgrade
+        packet_4 = bytearray.fromhex(u'55 1E 04 8A 2A 3C 5B 36 40 00 0A 00')
+        packet_4 += md5_check
+
+        packet_length = len(packet_4)
+        crc = calc_checksum(packet_4,packet_length)
+        crc = struct.pack('<H',crc)
+        packet_4 += crc        
 
     else:
         print ("You picked an option not yet supported")
