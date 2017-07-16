@@ -15,14 +15,14 @@ import struct
 import hashlib
 from table_crc import *
 
-global aircraft
+global device
 print ("---------------------------------------------------------------")
-aircraft = input('Select device number as follows: MavicPro = [1], Mavic RC = [2] : ')
+device = input('Select device number as follows: Aircraft = [1], RC = [2] : ')
 print ("---------------------------------------------------------------")
-if aircraft==1:
-    print ("Running Exploit for Mavic Pro")
+if device==1:
+    print ("Running Exploit for Aircraft")
 else:
-    print ("Running Exploit for Mavic RC")
+    print ("Running Exploit for RC")
 print ("---------------------------------------------------------------")
 
 def main():
@@ -83,13 +83,14 @@ def upload_binary():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
-
-        if aircraft == 2: # Is this only for Mavic RC? 505 Permission error on Mavic Pro
-            ftp.mkdir("/upgrade/.bin")
-
+        ftp.cwd('upgrade')
+        if '.bin' in ftp.nlst() :
+            print '.bin already exists...'
+        else :
+            ftp.mkd("/upgrade/.bin")
         fh.close()
         ftp.quit()
-    return  
+    return 
 
 def generate_update_packets():
     
@@ -102,7 +103,7 @@ def generate_update_packets():
     # Pack file size into 4 byte Long little endian
     file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
 
-    if aircraft == 1: #Mavic Pro
+    if device == 1: #Mavic Pro
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 28 65 57 40 00 07 00 00 00 00 00 00 00 00 00 27 D3')
         # Enable Reporting
@@ -137,7 +138,7 @@ def generate_update_packets():
         crc = struct.pack('<H',crc)
         packet_4 += crc
     
-    elif aircraft == 2: #Mavic RC
+    elif device == 2: #Mavic RC
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 2D E7 27 40 00 07 00 00 00 00 00 00 00 00 00 9F 44')
         # Enable Reporting
