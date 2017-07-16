@@ -48,7 +48,7 @@ def main():
     upload_binary()
     write_packet(packet_3) # Send File size
     write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
-    print ("--------------------------------------------------------------------------")
+    print ("--------------------------------------------------------------------------") 
     print ("Upgrade/Downgrade in Progress - May take a while....")
     ser.close
     return
