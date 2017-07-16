@@ -3,7 +3,7 @@
 # HDnes pythonDUML
 # Thanks Hostile for the fireworks grepping all the fish.
 # Thanks the_lord for the sniffing
-# Thanks jaydee for the usb and ftp work
+# Thanks hfman & jaydee for the usb and ftp work
 
 import time
 import os
