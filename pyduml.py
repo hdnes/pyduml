@@ -8,6 +8,7 @@
 import time
 import os
 import sys
+import shutil
 import serial
 import usb.core
 import usb.util
@@ -15,10 +16,91 @@ import struct
 import hashlib
 from table_crc import *
 
+global type
+global firmware
 global device
+if os.path.exists('./dji_system.bin')==True:
+    print ("removing stale dji_system.bin")
+    os.remove("dji_system.bin")
+
 print ("--------------------------------------------------------------------------")
 device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
 print ("--------------------------------------------------------------------------")
+type = input('Please choose a operation to execute on your device: Flash [1] Root [2] : ')
+print ("--------------------------------------------------------------------------")
+if type==1 and device==1:
+    print ("--------------------------------------------------------------------------")
+    firmware = input('Select a firmware to flash: [1] 400 [2] 700 [3] 800 [4] 900: ')
+    print ("--------------------------------------------------------------------------")
+if device==1 and firmware==1:
+    if os.path.exists('./V01.03.0400_Mavic_dji_system.bin')==False:
+        print ("Downloading Firmware file .400 - this may take a bit - its ~100MB")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0400_Mavic_dji_system.bin')
+        shutil.copyfile ('V01.03.0400_Mavic_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0400_Mavic_dji_system.bin', 'dji_system.bin')
+elif device==1 and firmware==2:
+    if os.path.exists('./V01.03.0700_Mavic_dji_system.bin')==False:
+        print ("Downloading Firmware file .700 - this may take a bit - its ~100MB")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_Mavic_dji_system.bin')
+        shutil.copyfile ('V01.03.0700_Mavic_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0700_Mavic_dji_system.bin', 'dji_system.bin')
+elif device==1 and firmware==3:
+    if os.path.exists('./V01.03.0800_Mavic_dji_system.bin')==False:
+        print ("Downloading Firmware file .800 - this may take a bit - its ~100MB")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0800_Mavic_dji_system.bin')
+        shutil.copyfile ('V01.03.0800_Mavic_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0800_Mavic_dji_system.bin', 'dji_system.bin')
+elif device==1 and firmware==4:
+    if os.path.exists('./V01.03.0900_Mavic_dji_system.bin')==False:
+        print ("Downloading Firmware file .900 - this may take a bit - its ~100MB")
+        os.system ('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0900_Mavic_dji_system.bin')
+        shutil.copyfile ('V01.03.0900_Mavic_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0900_Mavic_dji_system.bin', 'dji_system.bin')
+if type==1 and device==2:
+    print ("--------------------------------------------------------------------------")
+    firmware = input('Select a firmware to flash: [1] 400 [2] 700 : ')
+    print ("--------------------------------------------------------------------------")
+if device==2 and firmware==1:
+    if os.path.exists('./V01.03.0400_RC_Mavic_dji_system.bin')==False:
+        print ("Downloading the RC .400 firmware - please be patient")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0400_RC_Mavic_dji_system.bin')
+        shutil.copyfile ('V01.03.0400_RC_Mavic_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0400_RC_Mavic_dji_system.bin', 'dji_system.bin')
+elif device==2 and firmware==2:
+    if os.path.exists('./V01.03.0700_RC_Mavic_dji_system.bin')==False:
+        print ("Downloading the RC .700 firmware - please be patient")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_RC_Mavic_dji_system.bin')
+        shutil.copyfile ('V01.03.0700_RC_Mavic_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0700_RC_Mavic_dji_system.bin', 'dji_system.bin')
+if type==1 and device==3:
+    print ("--------------------------------------------------------------------------")
+    firmware = input ("Select a firmware to flash [1] 700 [2] 800 :")
+    print ("--------------------------------------------------------------------------")
+if device==3 and firmware==1:
+    if os.path.exists('./V01.03.0700_Goggles_dji_system.bin')==False:
+        print ("downloading Goggles 700 firmware file. Please wait...")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_Goggles_dji_system.bin')
+        shutil.copyfile ('V01.03.0700_Goggles_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0700_Goggles_dji_system.bin', 'dji_system.bin')
+
+elif device==3 and firmware==2:
+    if os.path.exists('./V01.03.0800_Goggles_dji_system.bin')==False:
+        print ("downloading Goggles 800 firmware file. Please wait...")
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0800_Goggles_dji_system.bin')
+        shutil.copyfile ('V01.03.0800_Goggles_dji_system.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('V01.03.0800_Goggles_dji_system.bin', 'dji_system.bin')
+
+if type==2:
+    shutil.copyfile('fireworks.tar', 'dji_system.bin')
+        
 if device==1:
     print ("Running Exploit for Aircraft")
 elif device ==2:
@@ -185,7 +267,7 @@ def generate_update_packets():
         crc = struct.pack('<H',crc)
         packet_4 += crc
 
-    elif device == 3: #Goggles
+    elif device == 3 and firmware ==2 or type==2: #Goggles
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 3C F7 35 40 00 07 00 00 00 00 00 00 00 00 00 0C 29')
         # Enable Reporting
