@@ -17,6 +17,7 @@ import struct
 import hashlib
 from table_crc import *
 
+global hack
 global type
 global firmware
 global device
@@ -54,31 +55,40 @@ print ("------------------------------------------------------------------------
 type = input('Please choose a operation to execute on your device: Flash [1] Root [2] : ')
 print ("--------------------------------------------------------------------------")
 if type==1 and device==1:
-    print ("--------------------------------------------------------------------------")
+    print ("------------------------------------------------------------------------------")
+    print ("Choose a firmware - version 400 and 700 have pre rooted options for mavic only")
     firmware = input('Select a firmware to flash: [1] 400 [2] 700 [3] 800 [4] 900: ')
-    print ("--------------------------------------------------------------------------")
+    print ("------------------------------------------------------------------------------")
 if device==1 and firmware==1:
+    print ("------------------------------------------------------------------------------")
+    hack = input ('Would you like a pre-rooted firmware? [1] NO! [2] Yes please! :')
+    print ("------------------------------------------------------------------------------")
+if device==1 and firmware==2:
+    print ("------------------------------------------------------------------------------")
+    hack = input ('Would you like a pre-rooted firmware? [1] NO! [2] Yes please! :')
+    print ("------------------------------------------------------------------------------")
+if device==1 and firmware==1 and hack==1:
     if os.path.exists('./V01.03.0400_Mavic_dji_system.bin')==False:
         print ("Downloading Firmware file .400 - this may take a bit - its ~100MB")
         os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0400_Mavic_dji_system.bin')
         shutil.copyfile ('V01.03.0400_Mavic_dji_system.bin', 'dji_system.bin')
     else:
         shutil.copyfile ('V01.03.0400_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==1 and firmware==2:
+elif device==1 and firmware==2 and hack==1:
     if os.path.exists('./V01.03.0700_Mavic_dji_system.bin')==False:
         print ("Downloading Firmware file .700 - this may take a bit - its ~100MB")
         os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_Mavic_dji_system.bin')
         shutil.copyfile ('V01.03.0700_Mavic_dji_system.bin', 'dji_system.bin')
     else:
         shutil.copyfile ('V01.03.0700_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==1 and firmware==3:
+elif device==1 and firmware==3 and hack==1:
     if os.path.exists('./V01.03.0800_Mavic_dji_system.bin')==False:
         print ("Downloading Firmware file .800 - this may take a bit - its ~100MB")
         os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0800_Mavic_dji_system.bin')
         shutil.copyfile ('V01.03.0800_Mavic_dji_system.bin', 'dji_system.bin')
     else:
         shutil.copyfile ('V01.03.0800_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==1 and firmware==4:
+elif device==1 and firmware==4 and hack==1:
     if os.path.exists('./V01.03.0900_Mavic_dji_system.bin')==False:
         print ("Downloading Firmware file .900 - this may take a bit - its ~100MB")
         os.system ('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0900_Mavic_dji_system.bin')
@@ -122,6 +132,22 @@ elif device==3 and firmware==2:
         shutil.copyfile ('V01.03.0800_Goggles_dji_system.bin', 'dji_system.bin')
     else:
         shutil.copyfile ('V01.03.0800_Goggles_dji_system.bin', 'dji_system.bin')
+        
+if device==1 and firmware==1 and hack==2:
+    if os.path.exists('./mavic_combined_400_root.bin')==False:
+        print ('Downloading pre-rooted .400 firmware for Mavic Aircraft. This may take a bit, its ~100MB')
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/mavic_combined_400_root.bin')
+        shutil.copyfile ('mavic_combined_400_root.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('mavic_combined_400_root.bin', 'dji_system.bin')
+        
+elif device==1 and firmware==2 and hack==2:
+    if os.path.exists('./mavic_combined_700_root.bin')==False:
+        print ('Downloading pre-rooted .700 firmware for Mavic Aircraft. This may take a bit, its ~100MB')
+        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/mavic_combined_700_root.bin')
+        shutil.copyfile ('mavic_combined_700_root.bin', 'dji_system.bin')
+    else:
+        shutil.copyfile ('mavic_combined_700_root.bin', 'dji_system.bin')
 
 if type==2:
     shutil.copyfile('fireworks.tar', 'dji_system.bin')
