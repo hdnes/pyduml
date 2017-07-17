@@ -1,8 +1,10 @@
 HDnes 
 
 Python based DUML [DJI Universal Markup Language] replicator
+
 combine with RedHerring fireworks.tar to obtain root (DUMLHerring aka Dumb Herring)
-or run in standalone mode for use as a firmware upgrade / downgrade tool 
+
+run in standalone mode for use as a firmware upgrade / downgrade tool 
 
 Thanks to the following:
 @hostile, @the_lord, @hfman, @jayedee
