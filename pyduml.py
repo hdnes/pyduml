@@ -4,6 +4,7 @@
 # Thanks Hostile for the fireworks grepping all the fish.
 # Thanks the_lord for the sniffing
 # Thanks hfman & jaydee for the usb and ftp work
+# root/flash selection and auto downloader added by vk2fro
 
 import time
 import os
