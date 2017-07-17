@@ -20,9 +20,33 @@ from table_crc import *
 global type
 global firmware
 global device
+global foo
+global port
 if os.path.exists('./dji_system.bin')==True:
     print ("removing stale dji_system.bin")
     os.remove("dji_system.bin")
+    
+os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.off')
+
+    
+print ("--------------------------------------------------------------------------")
+raw_input('Please plug in your DJI device and power it on, then press enter')
+print ("--------------------------------------------------------------------------")
+os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.on')
+os.system('diff /tmp/dji.on /tmp/dji.off | grep "<" | sed -e "s/.* //" > /tmp/dji.port')
+os.remove("/tmp/dji.on")
+os.remove("/tmp/dji.off")
+port = open('/tmp/dji.port').read()
+port = port.replace('\n', '')
+os.remove("/tmp/dji.port")
+if not port:
+    print ("No DJI product was detected. Please unplug it, rerun the script and follow the instructions")
+    sys.exit()
+else:
+    print ("Found a DJI gizmo at: /dev/{}".format(port))
+    
+
+
 
 print ("--------------------------------------------------------------------------")
 device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
@@ -155,7 +179,7 @@ def configure_usb():
 
     # Serial Port should resemble: '/dev/cu.usbmodem1425'
     global ser
-    ser = serial.Serial(sys.argv[1])
+    ser = serial.Serial("/dev/"+port)
     ser.baudrate = 115200  
         #data_bits = 8  
         #stop_bits = 1  
