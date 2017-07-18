@@ -4,178 +4,27 @@
 # Thanks Hostile for the fireworks grepping all the fish.
 # Thanks the_lord for the sniffing
 # Thanks hfman & jaydee for the usb and ftp work
-# root/flash selection and auto downloader added by vk2fro
+# Thanks vk2fro for UI selector,bin sourcing/managing, and auto connect
 
 import time
 import os
 import sys
-import shutil
 import serial
 import usb.core
 import usb.util
 import struct
 import hashlib
 from table_crc import *
+from pyduml_menu import *
 
-global hack
-global type
-global firmware
-global device
-global foo
-global port
-if os.path.exists('./dji_system.bin')==True:
-    print ("removing stale dji_system.bin")
-    os.remove("dji_system.bin")
-    
-os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.off')
-
-    
-print ("--------------------------------------------------------------------------")
-raw_input('Please plug in your DJI device and power it on, then press enter')
-print ("--------------------------------------------------------------------------")
-os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.on')
-os.system('diff /tmp/dji.on /tmp/dji.off | grep "<" | sed -e "s/.* //" > /tmp/dji.port')
-os.remove("/tmp/dji.on")
-os.remove("/tmp/dji.off")
-port = open('/tmp/dji.port').read()
-port = port.replace('\n', '')
-os.remove("/tmp/dji.port")
-if not port:
-    print ("No DJI product was detected. Please unplug it, rerun the script and follow the instructions")
-    sys.exit()
-else:
-    print ("Found a DJI gizmo at: /dev/{}".format(port))
-    
-
-
-
-print ("--------------------------------------------------------------------------")
-device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
-print ("--------------------------------------------------------------------------")
-type = input('Please choose a operation to execute on your device: Flash [1] Root [2] : ')
-print ("--------------------------------------------------------------------------")
-if type==1 and device==1:
-    print ("------------------------------------------------------------------------------")
-    print ("Choose a firmware - version 400 and 700 have pre rooted options for mavic only")
-    firmware = input('Select a firmware to flash: [1] 400 [2] 700 [3] 800 [4] 900: ')
-    print ("------------------------------------------------------------------------------")
-if device==1 and firmware==1:
-    print ("------------------------------------------------------------------------------")
-    hack = input ('Would you like a pre-rooted firmware? [1] NO! [2] Yes please! :')
-    print ("------------------------------------------------------------------------------")
-if device==1 and firmware==2:
-    print ("------------------------------------------------------------------------------")
-    hack = input ('Would you like a pre-rooted firmware? [1] NO! [2] Yes please! :')
-    print ("------------------------------------------------------------------------------")
-if device==1 and firmware==1 and hack==1:
-    if os.path.exists('./V01.03.0400_Mavic_dji_system.bin')==False:
-        print ("Downloading Firmware file .400 - this may take a bit - its ~100MB")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0400_Mavic_dji_system.bin')
-        shutil.copyfile ('V01.03.0400_Mavic_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0400_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==1 and firmware==2 and hack==1:
-    if os.path.exists('./V01.03.0700_Mavic_dji_system.bin')==False:
-        print ("Downloading Firmware file .700 - this may take a bit - its ~100MB")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_Mavic_dji_system.bin')
-        shutil.copyfile ('V01.03.0700_Mavic_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0700_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==1 and firmware==3 and hack==1:
-    if os.path.exists('./V01.03.0800_Mavic_dji_system.bin')==False:
-        print ("Downloading Firmware file .800 - this may take a bit - its ~100MB")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0800_Mavic_dji_system.bin')
-        shutil.copyfile ('V01.03.0800_Mavic_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0800_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==1 and firmware==4 and hack==1:
-    if os.path.exists('./V01.03.0900_Mavic_dji_system.bin')==False:
-        print ("Downloading Firmware file .900 - this may take a bit - its ~100MB")
-        os.system ('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0900_Mavic_dji_system.bin')
-        shutil.copyfile ('V01.03.0900_Mavic_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0900_Mavic_dji_system.bin', 'dji_system.bin')
-if type==1 and device==2:
-    print ("--------------------------------------------------------------------------")
-    firmware = input('Select a firmware to flash: [1] 400 [2] 700 : ')
-    print ("--------------------------------------------------------------------------")
-if device==2 and firmware==1:
-    if os.path.exists('./V01.03.0400_RC_Mavic_dji_system.bin')==False:
-        print ("Downloading the RC .400 firmware - please be patient")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0400_RC_Mavic_dji_system.bin')
-        shutil.copyfile ('V01.03.0400_RC_Mavic_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0400_RC_Mavic_dji_system.bin', 'dji_system.bin')
-elif device==2 and firmware==2:
-    if os.path.exists('./V01.03.0700_RC_Mavic_dji_system.bin')==False:
-        print ("Downloading the RC .700 firmware - please be patient")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_RC_Mavic_dji_system.bin')
-        shutil.copyfile ('V01.03.0700_RC_Mavic_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0700_RC_Mavic_dji_system.bin', 'dji_system.bin')
-if type==1 and device==3:
-    print ("--------------------------------------------------------------------------")
-    firmware = input ("Select a firmware to flash [1] 700 [2] 800 :")
-    print ("--------------------------------------------------------------------------")
-if device==3 and firmware==1:
-    if os.path.exists('./V01.03.0700_Goggles_dji_system.bin')==False:
-        print ("downloading Goggles 700 firmware file. Please wait...")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0700_Goggles_dji_system.bin')
-        shutil.copyfile ('V01.03.0700_Goggles_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0700_Goggles_dji_system.bin', 'dji_system.bin')
-
-elif device==3 and firmware==2:
-    if os.path.exists('./V01.03.0800_Goggles_dji_system.bin')==False:
-        print ("downloading Goggles 800 firmware file. Please wait...")
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/V01.03.0800_Goggles_dji_system.bin')
-        shutil.copyfile ('V01.03.0800_Goggles_dji_system.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('V01.03.0800_Goggles_dji_system.bin', 'dji_system.bin')
-        
-if device==1 and firmware==1 and hack==2:
-    if os.path.exists('./mavic_combined_400_root.bin')==False:
-        print ('Downloading pre-rooted .400 firmware for Mavic Aircraft. This may take a bit, its ~100MB')
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/mavic_combined_400_root.bin')
-        shutil.copyfile ('mavic_combined_400_root.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('mavic_combined_400_root.bin', 'dji_system.bin')
-        
-elif device==1 and firmware==2 and hack==2:
-    if os.path.exists('./mavic_combined_700_root.bin')==False:
-        print ('Downloading pre-rooted .700 firmware for Mavic Aircraft. This may take a bit, its ~100MB')
-        os.system('wget https://github.com/MAVProxyUser/dji_system.bin/raw/master/mavic_combined_700_root.bin')
-        shutil.copyfile ('mavic_combined_700_root.bin', 'dji_system.bin')
-    else:
-        shutil.copyfile ('mavic_combined_700_root.bin', 'dji_system.bin')
-
-if type==2:
-    shutil.copyfile('fireworks.tar', 'dji_system.bin')
-        
-if device==1:
-    print ("Running Exploit for Aircraft")
-elif device ==2:
-    print ("Running Exploit for RC")
-    print ("----------------------")
-    print ("Rooting RC is finicky, if having difficulties try the following")
-    print ("--------------------------------------------------------------------------")
-    print ("after root completes:")
-    print ("1: unplug before turning off")
-    print ("2: turn off")
-    print ("3: turn on (without usb connected)")
-    print ("4: turn off")
-    print ("5: plug in usb and turn on")
-
-elif device == 3:
-    print ("Running Exploit for Goggles")
-
-print ("--------------------------------------------------------------------------")    
 
 def main():
    
-    #probe_for_device()
+    remove_stale_bin()
+    probe_for_device()
+    device = pyduml_UI()
     configure_usb()
-    generate_update_packets()
+    generate_update_packets(device)
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
     upload_binary()
@@ -186,26 +35,49 @@ def main():
     ser.close
     return
 
+
+def remove_stale_bin():
+
+    if os.path.exists('./dji_system.bin')==True:
+        print ("--------------------------------------------------------------------------")
+        print ("removing stale dji_system.bin")
+        print ("--------------------------------------------------------------------------")
+        os.remove("dji_system.bin")
+
+    return
+
 def probe_for_device():
-    # find our drone
-    sys.stdout.write('Info: Looking for USB connected and compatible aircraft...\n')
-    dev = usb.core.find(idVendor=0x2ca3, idProduct=0x001f)  # mavic pro
+    global port
 
-    # connected?
-    if dev is None:
-        sys.stdout.write('Error: Unable to find compatible aircraft. Plug it in, power it up, and try again.\n\n')
-        sys.exit(2)
+    os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.off')
+    print ("--------------------------------------------------------------------------")
+    print("Device must not be connected and powered on at boot")
+    print("Please plug in your DJI device and power it on")
+    raw_input('Press Enter when complete')
+    print("Waiting for device to initilize....")
+    print ("--------------------------------------------------------------------------")
+    time.sleep(10)
+    os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.on')
+    os.system('diff /tmp/dji.on /tmp/dji.off | grep "<" | sed -e "s/.* //" > /tmp/dji.port')
+    os.remove("/tmp/dji.on")
+    os.remove("/tmp/dji.off")
+    port = open('/tmp/dji.port').read()
+    port = port.replace('\n', '')
+    os.remove("/tmp/dji.port")
+    if not port:
+        print ("No DJI product was detected. Please unplug it, rerun the script and follow the instructions")
+        sys.exit()
+    else:
+        print ("Found a DJI gizmo at: /dev/{}".format(port))
 
-    if dev.idVendor == 11427 and dev.idProduct == 31:
-        sys.stdout.write('Info: DJI Mavic Pro found.\n')
-        return
+    return
 
 def configure_usb():
     #serial.tools.list_ports
 
     # Serial Port should resemble: '/dev/cu.usbmodem1425'
     global ser
-    ser = serial.Serial("/dev/"+port)
+    ser = serial.Serial("/dev/" + port)
     ser.baudrate = 115200  
         #data_bits = 8  
         #stop_bits = 1  
@@ -241,7 +113,7 @@ def upload_binary():
         
     return 
 
-def generate_update_packets():
+def generate_update_packets(device):
     
     global packet_1 
     global packet_2 
@@ -318,7 +190,7 @@ def generate_update_packets():
         crc = struct.pack('<H',crc)
         packet_4 += crc
 
-    elif device == 3 and firmware ==2 or type==2: #Goggles
+    elif device == 3: #Goggles
         # Enter upgrade mode (delete old file if exists)
         packet_1 = bytearray.fromhex(u'55 16 04 FC 2A 3C F7 35 40 00 07 00 00 00 00 00 00 00 00 00 0C 29')
         # Enable Reporting
