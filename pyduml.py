@@ -99,7 +99,7 @@ def upload_binary():
         print ("dji_system.bin delivered via FTP")
         ftp.cwd('upgrade')
         if '.bin' in ftp.nlst() :
-            print '.bin already exists...'
+            print (".bin already exists...")
         else :
             ftp.mkd("/upgrade/.bin")
         fh.close()
