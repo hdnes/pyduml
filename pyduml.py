@@ -4,6 +4,7 @@
 # Thanks Hostile for the fireworks grepping all the fish.
 # Thanks the_lord for the sniffing
 # Thanks hfman & jaydee for the usb and ftp work
+# Thanks vk2fro for UI selector,bin sourcing/managing, and auto connect
 
 import time
 import os
@@ -14,35 +15,16 @@ import usb.util
 import struct
 import hashlib
 from table_crc import *
+from pyduml_menu import *
 
-global device
-print ("--------------------------------------------------------------------------")
-device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
-print ("--------------------------------------------------------------------------")
-if device==1:
-    print ("Running Exploit for Aircraft")
-elif device ==2:
-    print ("Running Exploit for RC")
-    print ("----------------------")
-    print ("Rooting RC is finicky, if having difficulties try the following")
-    print ("--------------------------------------------------------------------------")
-    print ("after root completes:")
-    print ("1: unplug before turning off")
-    print ("2: turn off")
-    print ("3: turn on (without usb connected)")
-    print ("4: turn off")
-    print ("5: plug in usb and turn on")
-
-elif device == 3:
-    print ("Running Exploit for Goggles")
-
-print ("--------------------------------------------------------------------------")    
 
 def main():
    
-    #probe_for_device()
+    remove_stale_bin()
+    probe_for_device()
+    device = pyduml_UI()
     configure_usb()
-    generate_update_packets()
+    generate_update_packets(device)
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
     upload_binary()
@@ -53,26 +35,49 @@ def main():
     ser.close
     return
 
+
+def remove_stale_bin():
+
+    if os.path.exists('./dji_system.bin')==True:
+        print ("--------------------------------------------------------------------------")
+        print ("removing stale dji_system.bin")
+        print ("--------------------------------------------------------------------------")
+        os.remove("dji_system.bin")
+
+    return
+
 def probe_for_device():
-    # find our drone
-    sys.stdout.write('Info: Looking for USB connected and compatible aircraft...\n')
-    dev = usb.core.find(idVendor=0x2ca3, idProduct=0x001f)  # mavic pro
+    global port
 
-    # connected?
-    if dev is None:
-        sys.stdout.write('Error: Unable to find compatible aircraft. Plug it in, power it up, and try again.\n\n')
-        sys.exit(2)
+    os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.off')
+    print ("--------------------------------------------------------------------------")
+    print("Device must not be connected and powered on at boot")
+    print("Please plug in your DJI device and power it on")
+    raw_input('Press Enter when complete')
+    print("Waiting for device to initilize....")
+    print ("--------------------------------------------------------------------------")
+    time.sleep(10)
+    os.system('ls /dev/tty* | sed -e "s#.*/##g" > /tmp/dji.on')
+    os.system('diff /tmp/dji.on /tmp/dji.off | grep "<" | sed -e "s/.* //" > /tmp/dji.port')
+    os.remove("/tmp/dji.on")
+    os.remove("/tmp/dji.off")
+    port = open('/tmp/dji.port').read()
+    port = port.replace('\n', '')
+    os.remove("/tmp/dji.port")
+    if not port:
+        print ("No DJI product was detected. Please unplug it, rerun the script and follow the instructions")
+        sys.exit()
+    else:
+        print ("Found a DJI gizmo at: /dev/{}".format(port))
 
-    if dev.idVendor == 11427 and dev.idProduct == 31:
-        sys.stdout.write('Info: DJI Mavic Pro found.\n')
-        return
+    return
 
 def configure_usb():
     #serial.tools.list_ports
 
     # Serial Port should resemble: '/dev/cu.usbmodem1425'
     global ser
-    ser = serial.Serial(sys.argv[1])
+    ser = serial.Serial("/dev/" + port)
     ser.baudrate = 115200  
         #data_bits = 8  
         #stop_bits = 1  
@@ -108,7 +113,7 @@ def upload_binary():
         
     return 
 
-def generate_update_packets():
+def generate_update_packets(device):
     
     global packet_1 
     global packet_2 
