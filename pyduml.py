@@ -7,41 +7,21 @@
 
 import time
 import os
+import platform
 import sys
 import serial
-import usb.core
-import usb.util
 import struct
 import hashlib
+
 from table_crc import *
+from pathlib import Path
+from ftplib import FTP
 
-global device
-print ("--------------------------------------------------------------------------")
-device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
-print ("--------------------------------------------------------------------------")
-if device==1:
-    print ("Running Exploit for Aircraft")
-elif device ==2:
-    print ("Running Exploit for RC")
-    print ("----------------------")
-    print ("Rooting RC is finicky, if having difficulties try the following")
-    print ("--------------------------------------------------------------------------")
-    print ("after root completes:")
-    print ("1: unplug before turning off")
-    print ("2: turn off")
-    print ("3: turn on (without usb connected)")
-    print ("4: turn off")
-    print ("5: plug in usb and turn on")
-
-elif device == 3:
-    print ("Running Exploit for Goggles")
-
-print ("--------------------------------------------------------------------------")    
 
 def main():
-   
-    #probe_for_device()
-    configure_usb()
+    print ("\nPreparing to run pythonDUML exploit from a " + platform.system() + " Machine")
+    device_selection_prompt()
+    configure_usbserial()
     generate_update_packets()
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
@@ -53,31 +33,43 @@ def main():
     ser.close
     return
 
-def probe_for_device():
-    # find our drone
-    sys.stdout.write('Info: Looking for USB connected and compatible aircraft...\n')
-    dev = usb.core.find(idVendor=0x2ca3, idProduct=0x001f)  # mavic pro
+def device_selection_prompt():
+	global device
+	print ("--------------------------------------------------------------------------")
+	device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
+	print ("--------------------------------------------------------------------------")
+	if device==1:
+	    print ("Exploit for Aircraft selected")
+	elif device ==2:
+	    print ("Exploit for RC selected")
+	    print ("----------------------")
+	    print ("Rooting RC is finicky, if having difficulties try the following")
+	    print ("--------------------------------------------------------------------------")
+	    print ("after root completes:")
+	    print ("1: unplug before turning off")
+	    print ("2: turn off")
+	    print ("3: turn on (without usb connected)")
+	    print ("4: turn off")
+	    print ("5: plug in usb and turn on")
 
-    # connected?
-    if dev is None:
-        sys.stdout.write('Error: Unable to find compatible aircraft. Plug it in, power it up, and try again.\n\n')
-        sys.exit(2)
+	elif device == 3:
+	    print ("Exploit for Goggles selected")
 
-    if dev.idVendor == 11427 and dev.idProduct == 31:
-        sys.stdout.write('Info: DJI Mavic Pro found.\n')
-        return
+	print ("--------------------------------------------------------------------------")    
+	return
 
-def configure_usb():
+def configure_usbserial():
     #serial.tools.list_ports
 
-    # Serial Port should resemble: '/dev/cu.usbmodem1425'
+    # Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0
     global ser
+    if sys.argv[1] is None:
+        print ("Usage: python " + sys.argv[0] + "<your device> (Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0)")
     ser = serial.Serial(sys.argv[1])
     ser.baudrate = 115200  
         #data_bits = 8  
         #stop_bits = 1  
         #parity = SerialPort::NONE
-
     return
 
 def write_packet(data):     
@@ -88,11 +80,8 @@ def write_packet(data):
     return
 
 def upload_binary():
-    from pathlib import Path
-
     my_file = Path("dji_system.bin")
     if my_file.is_file():
-        from ftplib import FTP
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
@@ -103,9 +92,7 @@ def upload_binary():
         else :
             ftp.mkd("/upgrade/.bin")
         fh.close()
-        ftp.quit()
-
-        
+        ftp.quit()        
     return 
 
 def generate_update_packets():
