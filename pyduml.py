@@ -19,7 +19,7 @@ from ftplib import FTP
 
 
 def main():
-    print ("\nPreparing to run pythonDUML exploit from a " + platform.system() + " Machine")
+    platform_detection()
     device_selection_prompt()
     configure_usbserial()
     generate_update_packets()
@@ -31,6 +31,13 @@ def main():
     print ("--------------------------------------------------------------------------") 
     print ("Upgrade/Downgrade in Progress - May take a while....")
     ser.close
+    return
+
+def platform_detection():
+    global sysOS
+    sysOS = platform.system()
+    print("\033c") # clear screen
+    print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine")
     return
 
 def device_selection_prompt():
@@ -84,6 +91,7 @@ def upload_binary():
     if my_file.is_file():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
+        ftp.set_pasv(True)
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
         print ("dji_system.bin delivered via FTP")
         ftp.cwd('upgrade')
