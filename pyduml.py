@@ -22,15 +22,15 @@ def main():
     print ("\nPreparing to run pythonDUML exploit from a " + platform.system() + " Machine")
     device_selection_prompt()
     configure_usbserial()
-    #generate_update_packets()
-    #write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
-    #write_packet(packet_2) # Enable Reporting
-    #upload_binary()
-    #write_packet(packet_3) # Send File size
-    #write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
+    generate_update_packets()
+    write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
+    write_packet(packet_2) # Enable Reporting
+    upload_binary()
+    write_packet(packet_3) # Send File size
+    write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
     print ("--------------------------------------------------------------------------") 
-    #print ("Upgrade/Downgrade in Progress - May take a while....")
-    #ser.close
+    print ("Upgrade/Downgrade in Progress - May take a while....")
+    ser.close
     return
 
 def device_selection_prompt():
