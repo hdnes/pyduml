@@ -20,8 +20,9 @@ from ftplib import FTP
 
 def main():
     platform_detection()
-    device_selection_prompt()
+    print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine.")
     configure_usbserial()
+    device_selection_prompt()
     generate_update_packets()
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
@@ -37,7 +38,6 @@ def platform_detection():
     global sysOS
     sysOS = platform.system()
     print("\033c") # clear screen
-    print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine")
     return
 
 def device_selection_prompt():
@@ -69,21 +69,25 @@ def configure_usbserial():
     #serial.tools.list_ports
 
     # Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0
-    global ser
-    if sys.argv[1] is None:
-        print ("Usage: python " + sys.argv[0] + "<your device> (Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0)")
-    ser = serial.Serial(sys.argv[1])
-    ser.baudrate = 115200  
-        #data_bits = 8  
-        #stop_bits = 1  
-        #parity = SerialPort::NONE
+    if len(sys.argv) < 2:
+        print("Error: No arguments entered.\n")
+        print ("Usage: python " + sys.argv[0] + " <your device> <debugmode>(optional) \n\n(Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0)\n")
+        sys.exit(0)
+    else:
+        try:
+            global ser
+            ser = serial.Serial(sys.argv[1])
+            ser.baudrate = 115200
+        except:
+            print("Error: Could not open port" + sys.argv[1] + ".\n")
+            sys.exit(0)
     return
 
-def write_packet(data):     
+def write_packet(data):
     ser.write(data)     # write a string
     time.sleep(0.1)
     hexout = ' '.join(format(x, '02X') for x in data)
-    print (hexout)  
+    print (hexout)
     return
 
 def upload_binary():
