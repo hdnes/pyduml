@@ -95,7 +95,7 @@ def upload_binary():
     if my_file.is_file():
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
-        ftp.set_pasv(True)
+        ftp.set_pasv(True)	# this is the fix for buggy ftp uploads we ran into in early days -jayemdee
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
         print ("dji_system.bin delivered via FTP")
         ftp.cwd('upgrade')
