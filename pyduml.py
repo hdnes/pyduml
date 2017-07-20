@@ -3,45 +3,26 @@
 # HDnes pythonDUML
 # Thanks Hostile for the fireworks grepping all the fish.
 # Thanks the_lord for the sniffing
-# Thanks hfman & jaydee for the usb and ftp work
+# Thanks hfman & jayemdee for the usb and ftp work
 
 import time
 import os
+import platform
 import sys
 import serial
-import usb.core
-import usb.util
 import struct
 import hashlib
+
 from table_crc import *
+from pathlib import Path
+from ftplib import FTP
 
-global device
-print ("--------------------------------------------------------------------------")
-device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
-print ("--------------------------------------------------------------------------")
-if device==1:
-    print ("Running Exploit for Aircraft")
-elif device ==2:
-    print ("Running Exploit for RC")
-    print ("----------------------")
-    print ("Rooting RC is finicky, if having difficulties try the following")
-    print ("--------------------------------------------------------------------------")
-    print ("after root completes:")
-    print ("1: unplug before turning off")
-    print ("2: turn off")
-    print ("3: turn on (without usb connected)")
-    print ("4: turn off")
-    print ("5: plug in usb and turn on")
-
-elif device == 3:
-    print ("Running Exploit for Goggles")
-
-print ("--------------------------------------------------------------------------")    
 
 def main():
-   
-    #probe_for_device()
-    configure_usb()
+    platform_detection()
+    print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine.")
+    configure_usbserial()
+    device_selection_prompt()
     generate_update_packets()
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
@@ -53,48 +34,68 @@ def main():
     ser.close
     return
 
-def probe_for_device():
-    # find our drone
-    sys.stdout.write('Info: Looking for USB connected and compatible aircraft...\n')
-    dev = usb.core.find(idVendor=0x2ca3, idProduct=0x001f)  # mavic pro
-
-    # connected?
-    if dev is None:
-        sys.stdout.write('Error: Unable to find compatible aircraft. Plug it in, power it up, and try again.\n\n')
-        sys.exit(2)
-
-    if dev.idVendor == 11427 and dev.idProduct == 31:
-        sys.stdout.write('Info: DJI Mavic Pro found.\n')
-        return
-
-def configure_usb():
-    #serial.tools.list_ports
-
-    # Serial Port should resemble: '/dev/cu.usbmodem1425'
-    global ser
-    ser = serial.Serial(sys.argv[1])
-    ser.baudrate = 115200  
-        #data_bits = 8  
-        #stop_bits = 1  
-        #parity = SerialPort::NONE
-
+def platform_detection():
+    global sysOS
+    sysOS = platform.system()
+    print("\033c") # clear screen
     return
 
-def write_packet(data):     
+def device_selection_prompt():
+	global device
+	print ("--------------------------------------------------------------------------")
+	device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
+	print ("--------------------------------------------------------------------------")
+	if device==1:
+	    print ("Exploit for Aircraft selected")
+	elif device ==2:
+	    print ("Exploit for RC selected")
+	    print ("----------------------")
+	    print ("Rooting RC is finicky, if having difficulties try the following")
+	    print ("--------------------------------------------------------------------------")
+	    print ("after root completes:")
+	    print ("1: unplug before turning off")
+	    print ("2: turn off")
+	    print ("3: turn on (without usb connected)")
+	    print ("4: turn off")
+	    print ("5: plug in usb and turn on")
+
+	elif device == 3:
+	    print ("Exploit for Goggles selected")
+
+	print ("--------------------------------------------------------------------------")    
+	return
+
+def configure_usbserial():
+    #serial.tools.list_ports
+
+    # Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0
+    if len(sys.argv) < 2:
+        print("Error: No arguments entered.\n")
+        print ("Usage: python " + sys.argv[0] + " <your device> <debugmode>(optional) \n\n(Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0)\n")
+        sys.exit(0)
+    else:
+        try:
+            global ser
+            ser = serial.Serial(sys.argv[1])
+            ser.baudrate = 115200
+        except:
+            print("Error: Could not open port" + sys.argv[1] + ".\n")
+            sys.exit(0)
+    return
+
+def write_packet(data):
     ser.write(data)     # write a string
     time.sleep(0.1)
     hexout = ' '.join(format(x, '02X') for x in data)
-    print (hexout)  
+    print (hexout)
     return
 
 def upload_binary():
-    from pathlib import Path
-
     my_file = Path("dji_system.bin")
     if my_file.is_file():
-        from ftplib import FTP
         ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
         fh = open("dji_system.bin", 'rb')
+        ftp.set_pasv(True)	# this is the fix for buggy ftp uploads we ran into in early days -jayemdee
         ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
         print ("dji_system.bin delivered via FTP")
         ftp.cwd('upgrade')
@@ -103,9 +104,7 @@ def upload_binary():
         else :
             ftp.mkd("/upgrade/.bin")
         fh.close()
-        ftp.quit()
-
-        
+        ftp.quit()        
     return 
 
 def generate_update_packets():
