@@ -5,7 +5,10 @@ Python based DUML [DJI Universal Markup Language] Exploit & FW upgrade/downgrade
 Thanks to the following:
 @POV @hostile, @the_lord, @hfman, @jayemdee
 
-Usage: python pyduml.py serial_port debugmode(optional)
+Normal Usage: python pyduml.py
+This will autodetect your device and communications port.  If something doesnt work right with this you can use the advanced usage instructions below. 
+
+Advanced Usage: python pyduml.py serial_port debugmode(optional)
 
 Serial Port should resemble '/dev/cu.usbmodemXXXX' on Apple 
 or on Linux should be something like '/dev/ttyACM0'where XXXX 

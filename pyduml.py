@@ -16,11 +16,10 @@ import hashlib
 from table_crc import *
 from pathlib import Path
 from ftplib import FTP
-
+from serial.tools import list_ports
 
 def main():
     platform_detection()
-    print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine.")
     configure_usbserial()
     device_selection_prompt()
     define_firmware()
@@ -66,22 +65,31 @@ def device_selection_prompt():
 	print ("--------------------------------------------------------------------------")    
 	return
 
-def configure_usbserial():
-    #serial.tools.list_ports
+def find_port():
+    try:
+        dji_dev = list(list_ports.grep("2ca3:001f"))[0][0]
+        return dji_dev
+    except:
+        sys.exit("Error: No DJI device found plugged to your system. Please re-plug / reboot device and try again.\n")
 
-    # Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0
+def configure_usbserial():
+    # Serial Port should resemble: '/dev/cu.usbmodem1425' on apple or linux should be something like /dev/ttyACM0
+    global comport
+
     if len(sys.argv) < 2:
-        print("Error: No arguments entered.\n")
-        print ("Usage: python " + sys.argv[0] + " <your device> <debugmode>(optional) \n\n(Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0)\n")
-        sys.exit(0)
+        comport = find_port()
+        print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport+ "\n")
+        print ("If this is not the right device you can override by passing the device name as first argument to this script.\n")
     else:
-        try:
-            global ser
-            ser = serial.Serial(sys.argv[1])
-            ser.baudrate = 115200
-        except:
-            print("Error: Could not open port" + sys.argv[1] + ".\n")
-            sys.exit(0)
+        comport = sys.argv[1]
+        print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport+ "\n")
+    try:
+        global ser
+        ser = serial.Serial(comport)
+        ser.baudrate = 115200
+    except:
+        print("Error: Could not open communications port " + comport + ".\n")
+        sys.exit(0)
     return
 
 def write_packet(data):
