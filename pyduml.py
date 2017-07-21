@@ -23,6 +23,7 @@ def main():
     print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine.")
     configure_usbserial()
     device_selection_prompt()
+    define_firmware()
     generate_update_packets()
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
@@ -30,7 +31,7 @@ def main():
     write_packet(packet_3) # Send File size
     write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
     print ("--------------------------------------------------------------------------") 
-    print ("Upgrade/Downgrade in Progress - May take a while....")
+    print ("If you are upgrading/downgrading firmware, this may take a while.\nIf you are rooting, the process is almost instant. wait a few seconds and reboot your device.")
     ser.close
     return
 
@@ -45,9 +46,9 @@ def device_selection_prompt():
 	print ("--------------------------------------------------------------------------")
 	device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
 	print ("--------------------------------------------------------------------------")
-	if device==1:
+	if device == 1:
 	    print ("Exploit for Aircraft selected")
-	elif device ==2:
+	elif device == 2:
 	    print ("Exploit for RC selected")
 	    print ("----------------------")
 	    print ("Rooting RC is finicky, if having difficulties try the following")
@@ -87,25 +88,37 @@ def write_packet(data):
     ser.write(data)     # write a string
     time.sleep(0.1)
     hexout = ' '.join(format(x, '02X') for x in data)
-    print (hexout)
+    if len(sys.argv) > 2 and sys.argv[2] == "debugmode":
+        print (hexout)
+    else:
+        print("Sent DUML packet...\n")
     return
 
 def upload_binary():
-    my_file = Path("dji_system.bin")
-    if my_file.is_file():
-        ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
-        fh = open("dji_system.bin", 'rb')
-        ftp.set_pasv(True)	# this is the fix for buggy ftp uploads we ran into in early days -jayemdee
-        ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
-        print ("dji_system.bin delivered via FTP")
-        ftp.cwd('upgrade')
-        if '.bin' in ftp.nlst() :
-            print (".bin already exists...")
-        else :
-            ftp.mkd("/upgrade/.bin")
-        fh.close()
-        ftp.quit()        
+    #my_file = Path("dji_system.bin")
+    #if my_file.is_file():
+    print("Opening FTP connection to 192.168.42.2...\n")
+    ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
+    fh = open(str(firmware_file), 'rb')
+    ftp.set_pasv(True)	# this is the fix for buggy ftp uploads we ran into in early days -jayemdee
+    ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
+    print (str(firmware_file) + " uploaded to FTP with a remote file size of: " + str(ftp.size("/upgrade/dji_system.bin")))
+    ftp.cwd('upgrade')
+    if '.bin' in ftp.nlst() :
+        print(".bin directory already exists. Skipping directory creation...\n")
+    else :
+        print("Creating /upgrade/.bin directory...\n")
+        ftp.mkd("/upgrade/.bin")
+    fh.close()
+    ftp.quit()        
     return 
+
+def define_firmware():
+    global firmware_file
+    firmware_file = Path("dji_system.bin").absolute()
+    if firmware_file.is_file() is False:
+        sys.exit("Error: No dji_system.bin found in current working directory.\n")
+    return
 
 def generate_update_packets():
     
@@ -114,8 +127,8 @@ def generate_update_packets():
     global packet_3 
     global packet_4
 
-    dir_path = os.path.dirname(os.path.realpath(__file__)) + "/dji_system.bin"
     # Pack file size into 4 byte Long little endian
+    dir_path = str(firmware_file)
     file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
 
     if device == 1: #Aircraft
@@ -216,10 +229,9 @@ def generate_update_packets():
         packet_4 += crc        
 
     else:
-        print ("You picked an option not yet supported")
+        sys.exit("Invalid Selection. Exiting.\n")
 
     return
-
 
 if __name__ == "__main__":
     main()

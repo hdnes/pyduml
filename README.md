@@ -1,18 +1,21 @@
-HDnes 
+Pyduml
+------
+Python based DUML [DJI Universal Markup Language] Exploit & FW upgrade/downgrade tool.
 
-Python based DUML [DJI Universal Markup Language] replicator
 Thanks to the following:
-@hostile, @the_lord, @hfman, @jayedee
+@POV @hostile, @the_lord, @hfman, @jayemdee
 
-Usage:  python pyduml.py /dev/cu.usbmodemXXXX
+Usage: python pyduml.py <serial port> <debugmode>(optional)
 
-where XXXX is your specific device number connected
+Serial Port should resemble '/dev/cu.usbmodemXXXX' on Apple 
+or on Linux should be something like '/dev/ttyACM0'where XXXX 
+is your specific device number connected
+
+Use included RedHerring fireworks.tar to obtain root (DUMLHerring aka Dumb Herring).  Just rename it to dji_system.bin.
+Run in standalone mode for use as a firmware upgrade / downgrade tool firmware bins here: [dji_system.bin](https://github.com/MAVProxyUser/dji_system.bin)
+
 
 ![HDnes](http://piq.codeus.net/static/media/userpics/piq_291737_400x400.png)
 
 ![Mutated Herrings have hit the seas...](https://raw.githubusercontent.com/hdnes/pyduml/master/history.jpg)
 
-combine with RedHerring fireworks.tar to obtain root (DUMLHerring aka Dumb Herring)
-
-run in standalone mode for use as a firmware upgrade / downgrade tool 
-firmware bins here: [dji_system.bin](https://github.com/MAVProxyUser/dji_system.bin)
