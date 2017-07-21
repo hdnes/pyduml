@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# https://github.com/mefistotelis/phantom-firmware-tools/issues/25
+# as shared by GlovePuppet
 
 import struct
 
