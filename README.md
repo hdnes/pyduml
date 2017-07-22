@@ -8,9 +8,11 @@ Thanks to the following:
 ----------------------------------------------------------------
 Dependencies:
 
-python 2.7 (not sure if 3+ has been tested yet)
-pyserial 3.3 package (install with 'pip install pyserial' and then follow that with 'pip install --upgrade pyserial' to be sure you are on newest version)
-pathlib 1.0.1 (install with 'pip install pathlib')
+- python 2.7 (not sure if 3+ has been tested yet)
+
+- pyserial 3.3 package (install with 'pip install pyserial' and then follow that with 'pip install --upgrade pyserial' to be sure you are on newest version)
+
+- pathlib 1.0.1 (install with 'pip install pathlib')
 
 ----------------------------------------------------------------
 Normal Usage: python pyduml.py
