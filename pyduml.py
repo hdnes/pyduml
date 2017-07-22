@@ -14,6 +14,7 @@ import struct
 import hashlib
 
 from table_crc import *
+from utils import *
 from pathlib import Path
 from ftplib import FTP
 from serial.tools import list_ports
@@ -21,6 +22,7 @@ from serial.tools import list_ports
 def main():
     platform_detection()
     configure_usbserial()
+    check_network()    
     device_selection_prompt()
     define_firmware()
     generate_update_packets()
@@ -38,13 +40,11 @@ def platform_detection():
     global sysOS
     sysOS = platform.system()
     print("\033c") # clear screen
-    return
+    return sysOS
 
 def device_selection_prompt():
 	global device
-	print ("--------------------------------------------------------------------------")
-	device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
-	print ("--------------------------------------------------------------------------")
+	device = input('\nSelect device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
 	if device == 1:
 	    print ("Exploit for Aircraft selected")
 	elif device == 2:
@@ -72,14 +72,28 @@ def find_port():
     except:
         sys.exit("Error: No DJI device found plugged to your system. Please re-plug / reboot device and try again.\n")
 
+def check_network():
+    # Linux specific magic
+    if sysOS == 'Linux':
+        print("Attempting to to set IP on usb0...")
+        set_ip_addr('usb0', '192.168.42.1')
+        try:
+            iface_exists("usb0")
+            os.system('/sbin/ifconfig usb0 up') # linux specific hack: cant find a pure python way of bringing usb0 up after config
+            print("Network setup successful.")
+        except:
+            sys.exit("Error: Unknown failure configuring RNDIS device.")
+    return
+
 def configure_usbserial():
-    # Serial Port should resemble: '/dev/cu.usbmodem1425' on apple or linux should be something like /dev/ttyACM0
     global comport
 
+    # no command line args
     if len(sys.argv) < 2:
         comport = find_port()
-        print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport+ "\n")
+        print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport)
         print ("If this is not the right device you can override by passing the device name as first argument to this script.\n")
+    # parse command line args
     else:
         comport = sys.argv[1]
         print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport+ "\n")
@@ -102,9 +116,14 @@ def write_packet(data):
         print("Sent DUML packet...\n")
     return
 
+def define_firmware():
+    global firmware_file
+    firmware_file = Path("dji_system.bin").absolute()
+    if firmware_file.is_file() is False:
+        sys.exit("Error: No dji_system.bin found in CWD or it is not a valid file.\n")
+    return
+
 def upload_binary():
-    #my_file = Path("dji_system.bin")
-    #if my_file.is_file():
     print("Opening FTP connection to 192.168.42.2...\n")
     ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
     fh = open(str(firmware_file), 'rb')
@@ -120,13 +139,6 @@ def upload_binary():
     fh.close()
     ftp.quit()        
     return 
-
-def define_firmware():
-    global firmware_file
-    firmware_file = Path("dji_system.bin").absolute()
-    if firmware_file.is_file() is False:
-        sys.exit("Error: No dji_system.bin found in current working directory.\n")
-    return
 
 def generate_update_packets():
     
