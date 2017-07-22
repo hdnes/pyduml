@@ -14,15 +14,17 @@ import struct
 import hashlib
 
 from table_crc import *
+from utils import *
 from pathlib import Path
 from ftplib import FTP
-
+from serial.tools import list_ports
 
 def main():
     platform_detection()
-    print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine.")
     configure_usbserial()
+    check_network()    
     device_selection_prompt()
+    define_firmware()
     generate_update_packets()
     write_packet(packet_1) # Enter upgrade mode (delete old file if exists) 
     write_packet(packet_2) # Enable Reporting
@@ -30,7 +32,7 @@ def main():
     write_packet(packet_3) # Send File size
     write_packet(packet_4) # Send MD5 Hash for verification and Start Upgrade
     print ("--------------------------------------------------------------------------") 
-    print ("Upgrade/Downgrade in Progress - May take a while....")
+    print ("If you are upgrading/downgrading firmware, this may take a while.\nIf you are rooting, the process is almost instant. wait a few seconds and reboot your device.")
     ser.close
     return
 
@@ -38,16 +40,14 @@ def platform_detection():
     global sysOS
     sysOS = platform.system()
     print("\033c") # clear screen
-    return
+    return sysOS
 
 def device_selection_prompt():
 	global device
-	print ("--------------------------------------------------------------------------")
-	device = input('Select device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
-	print ("--------------------------------------------------------------------------")
-	if device==1:
+	device = input('\nSelect device number as follows: Aircraft = [1], RC = [2], Goggles = [3] : ')
+	if device == 1:
 	    print ("Exploit for Aircraft selected")
-	elif device ==2:
+	elif device == 2:
 	    print ("Exploit for RC selected")
 	    print ("----------------------")
 	    print ("Rooting RC is finicky, if having difficulties try the following")
@@ -65,46 +65,79 @@ def device_selection_prompt():
 	print ("--------------------------------------------------------------------------")    
 	return
 
-def configure_usbserial():
-    #serial.tools.list_ports
+def find_port():
+    try:
+        dji_dev = list(list_ports.grep("2ca3:001f"))[0][0]
+        return dji_dev
+    except:
+        sys.exit("Error: No DJI device found plugged to your system. Please re-plug / reboot device and try again.\n")
 
-    # Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0
-    if len(sys.argv) < 2:
-        print("Error: No arguments entered.\n")
-        print ("Usage: python " + sys.argv[0] + " <your device> <debugmode>(optional) \n\n(Serial Port should resemble: '/dev/cu.usbmodem1425' or linux should be something like /dev/ttyACM0)\n")
-        sys.exit(0)
-    else:
+def check_network():
+    # Linux specific magic
+    if sysOS == 'Linux':
+        print("Attempting to to set IP on usb0...")
+        set_ip_addr('usb0', '192.168.42.1')
         try:
-            global ser
-            ser = serial.Serial(sys.argv[1])
-            ser.baudrate = 115200
+            iface_exists("usb0")
+            os.system('/sbin/ifconfig usb0 up') # linux specific hack: cant find a pure python way of bringing usb0 up after config
+            print("Network setup successful.")
         except:
-            print("Error: Could not open port" + sys.argv[1] + ".\n")
-            sys.exit(0)
+            sys.exit("Error: Unknown failure configuring RNDIS device.")
+    return
+
+def configure_usbserial():
+    global comport
+
+    # no command line args
+    if len(sys.argv) < 2:
+        comport = find_port()
+        print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport)
+        print ("If this is not the right device you can override by passing the device name as first argument to this script.\n")
+    # parse command line args
+    else:
+        comport = sys.argv[1]
+        print ("Preparing to run pythonDUML exploit from a " + sysOS + " Machine using com port: " +comport+ "\n")
+    try:
+        global ser
+        ser = serial.Serial(comport)
+        ser.baudrate = 115200
+    except:
+        print("Error: Could not open communications port " + comport + ".\n")
+        sys.exit(0)
     return
 
 def write_packet(data):
     ser.write(data)     # write a string
     time.sleep(0.1)
     hexout = ' '.join(format(x, '02X') for x in data)
-    print (hexout)
+    if len(sys.argv) > 2 and sys.argv[2] == "debugmode":
+        print (hexout)
+    else:
+        print("Sent DUML packet...\n")
+    return
+
+def define_firmware():
+    global firmware_file
+    firmware_file = Path("dji_system.bin").absolute()
+    if firmware_file.is_file() is False:
+        sys.exit("Error: No dji_system.bin found in CWD or it is not a valid file.\n")
     return
 
 def upload_binary():
-    my_file = Path("dji_system.bin")
-    if my_file.is_file():
-        ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
-        fh = open("dji_system.bin", 'rb')
-        ftp.set_pasv(True)	# this is the fix for buggy ftp uploads we ran into in early days -jayemdee
-        ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
-        print ("dji_system.bin delivered via FTP")
-        ftp.cwd('upgrade')
-        if '.bin' in ftp.nlst() :
-            print (".bin already exists...")
-        else :
-            ftp.mkd("/upgrade/.bin")
-        fh.close()
-        ftp.quit()        
+    print("Opening FTP connection to 192.168.42.2...\n")
+    ftp = FTP("192.168.42.2", "Gimme", "DatROot!")
+    fh = open(str(firmware_file), 'rb')
+    ftp.set_pasv(True)	# this is the fix for buggy ftp uploads we ran into in early days -jayemdee
+    ftp.storbinary('STOR /upgrade/dji_system.bin', fh)
+    print (str(firmware_file) + " uploaded to FTP with a remote file size of: " + str(ftp.size("/upgrade/dji_system.bin")))
+    ftp.cwd('upgrade')
+    if '.bin' in ftp.nlst() :
+        print(".bin directory already exists. Skipping directory creation...\n")
+    else :
+        print("Creating /upgrade/.bin directory...\n")
+        ftp.mkd("/upgrade/.bin")
+    fh.close()
+    ftp.quit()        
     return 
 
 def generate_update_packets():
@@ -114,8 +147,8 @@ def generate_update_packets():
     global packet_3 
     global packet_4
 
-    dir_path = os.path.dirname(os.path.realpath(__file__)) + "/dji_system.bin"
     # Pack file size into 4 byte Long little endian
+    dir_path = str(firmware_file)
     file_size = struct.pack('<L',int(os.path.getsize(dir_path)))
 
     if device == 1: #Aircraft
@@ -216,10 +249,9 @@ def generate_update_packets():
         packet_4 += crc        
 
     else:
-        print ("You picked an option not yet supported")
+        sys.exit("Invalid Selection. Exiting.\n")
 
     return
-
 
 if __name__ == "__main__":
     main()
