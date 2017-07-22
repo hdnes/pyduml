@@ -6,6 +6,15 @@ Thanks to the following:
 @POV @hostile, @the_lord, @hfman, @jayemdee
 
 ----------------------------------------------------------------
+Dependencies:
+
+- python 2.7 (not sure if 3+ has been tested yet)
+
+- pyserial 3.3 package (install with 'pip install pyserial' and then follow that with 'pip install --upgrade pyserial' to be sure you are on newest version)
+
+- pathlib 1.0.1 (install with 'pip install pathlib')
+
+----------------------------------------------------------------
 Normal Usage: python pyduml.py
 This will autodetect your device and communications port and setup the RNDIS network for ftp file transfer under linux.  
 If something doesnt work right with this you can use the advanced usage instructions below. 
