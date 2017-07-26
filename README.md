@@ -36,7 +36,7 @@ Run in standalone mode for use as a firmware upgrade / downgrade tool firmware b
 
 ![Mutated Herrings have hit the seas...](https://raw.githubusercontent.com/hdnes/pyduml/master/history.jpg)
 
-#DeejayeyeHackingClub information repos aka "The OG's" (Original Gangsters)
+### #DeejayeyeHackingClub information repos aka "The OG's" (Original Gangsters)
 
 http://dji.retroroms.info/ - "Wiki"
 
