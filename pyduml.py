@@ -55,7 +55,7 @@ def platform_detection():
 
 def device_selection_prompt():
 	global device
-	device = input('\nSelect device number as follows: Aircraft = [1], RC = [2], Goggles = [3], SparkRC = [4]: ')
+	device = int(input('\nSelect device number as follows: Aircraft = [1], RC = [2], Goggles = [3], SparkRC = [4]: '))
 	if device == 1:
 	    print ("Exploit for Aircraft selected")
 	elif device == 2:
